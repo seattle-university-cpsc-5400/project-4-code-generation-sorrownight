@@ -33,3 +33,10 @@ C:\Users\leblanc\Documents\GitHub\Project-4-student-initial\obj\Debug\Project4.c
 C:\Users\leblanc\Documents\GitHub\Project-4-student-initial\obj\Debug\Project4.csproj.CoreCompileInputs.cache
 C:\Users\leblanc\Documents\GitHub\Project-4-student-initial\obj\Debug\TCCL-CodeGen.exe
 C:\Users\leblanc\Documents\GitHub\Project-4-student-initial\obj\Debug\TCCL-CodeGen.pdb
+C:\Users\Valhari\OneDrive - Seattle University\School\Spring-2021\CPSC 5400\Projects\P4\bin\Debug\TCCL-CodeGen.exe.config
+C:\Users\Valhari\OneDrive - Seattle University\School\Spring-2021\CPSC 5400\Projects\P4\bin\Debug\TCCL-CodeGen.exe
+C:\Users\Valhari\OneDrive - Seattle University\School\Spring-2021\CPSC 5400\Projects\P4\bin\Debug\TCCL-CodeGen.pdb
+C:\Users\Valhari\OneDrive - Seattle University\School\Spring-2021\CPSC 5400\Projects\P4\obj\Debug\Project4.csprojAssemblyReference.cache
+C:\Users\Valhari\OneDrive - Seattle University\School\Spring-2021\CPSC 5400\Projects\P4\obj\Debug\Project4.csproj.CoreCompileInputs.cache
+C:\Users\Valhari\OneDrive - Seattle University\School\Spring-2021\CPSC 5400\Projects\P4\obj\Debug\TCCL-CodeGen.exe
+C:\Users\Valhari\OneDrive - Seattle University\School\Spring-2021\CPSC 5400\Projects\P4\obj\Debug\TCCL-CodeGen.pdb
