@@ -18,7 +18,8 @@ namespace ASTBuilder
     private string currentClass = "";
     private bool inReturn = false;
     private int offset = 0;
-    public string methodCtx = "";
+    private string methodCtx = "";
+    private string staticCtx = "";
 
     // used to produce a readable trace when desired
     protected String prefix = "";
@@ -174,11 +175,17 @@ namespace ASTBuilder
         file.Write(" " + getModString(mod));
       }
 
+      
+
+      if (!atr.isStatic && sig.atr.name.Equals("main")) {
+        file.Write(" static");
+        atr.isStatic = true;
+      }
+
       if (!atr.isStatic)
         methodCtx = atr.foundIn;
 
-      if (!atr.isStatic && sig.atr.name.Equals("main"))
-        file.Write(" static");
+      staticCtx = atr.foundIn;
 
       file.Write(" " + atr.returnType.type);
 
@@ -303,14 +310,20 @@ namespace ASTBuilder
     {
       dynamic lhs = node.Child;
       dynamic rhs = lhs.Sib;
+      inRhs = true;
 
-      if (node.exprKind == ExprKind.EQUALS && currentClass.Equals(methodCtx)) {
-        if (currentClass.Equals(methodCtx)) { // Load the instance from arg one
-          file.WriteLine(otherPrefix + "ldarg 0");
+      if (node.exprKind == ExprKind.EQUALS) {
+        inRhs = false;
+        VisitNode(lhs);
+        if (currentClass.Equals(methodCtx)) {
+          file.WriteLine(otherPrefix + "ldarg 0"); // Load the instance from arg one
         }
+
         inRhs = true;
         VisitNode(rhs);
-      } else VisitChildren(node);      
+      } else VisitChildren(node);
+
+      inRhs = false;
 
       switch (node.exprKind) {
         case ExprKind.EQUALS: // Assuming rhs already on stack... store in variable
@@ -320,7 +333,6 @@ namespace ASTBuilder
             file.WriteLine(otherPrefix + "stfld " + ((VariableAttributes)lhs.atr).type.type
                           + " " + ((VariableAttributes)lhs.atr).foundIn + "::" + ((VariableAttributes)lhs.atr).id);
           else file.WriteLine(otherPrefix + "stloc " + ((VariableAttributes)lhs.atr).stackLoc);
-          inRhs = false;
           break;
         case ExprKind.PLUSOP:
           file.WriteLine(otherPrefix + "add");
@@ -395,7 +407,7 @@ namespace ASTBuilder
 
     public void VisitNode(Identifier node)
     {
-      if (node.type is ObjectTypeDescriptor) {
+      if (node.type is ObjectTypeDescriptor && !currentClass.Equals(staticCtx)) {
         file.WriteLine(otherPrefix + "ldsflda valuetype  " + node.type.type
                       + " " + currentClass + "::" + node.Name);
       }

@@ -9,7 +9,6 @@
         {
             .maxstack 20
             ldarg 0
-            ldfld int32 structTest/test::control
             ldarg 1
             stfld int32 structTest/test::control
             ret
@@ -46,11 +45,10 @@
         .locals init(int32)
         ldstr "TCCL test of factorial in a struct"
         call void [mscorlib]System.Console::WriteLine (string)
-        ldsflda valuetype  structTest/test structTest::t
         ldc.i4 0
         call instance void structTest/test::'init'(int32)
         LOOP_2:
-        ldsflda valuetype  structTest/test structTest::t
+        ldfld structTest/test structTest::t
         ldfld int32 structTest/test::control
         ldc.i4 15
         blt T3
@@ -59,17 +57,13 @@
         T3: ldc.i4 1
         E3:
         brfalse E2
-        ldloc 0
-        ldsflda valuetype  structTest/test structTest::t
-        ldsflda valuetype  structTest/test structTest::t
+        ldfld structTest/test structTest::t
         ldfld int32 structTest/test::control
         call instance int32 structTest/test::factorial(int32)
         stloc 0
         ldloc 0
         call void [mscorlib]System.Console::WriteLine (int32)
-        ldsflda valuetype  structTest/test structTest::t
-        ldfld int32 structTest/test::control
-        ldsflda valuetype  structTest/test structTest::t
+        ldfld structTest/test structTest::t
         ldfld int32 structTest/test::control
         ldc.i4 1
         add

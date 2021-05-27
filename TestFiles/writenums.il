@@ -2,7 +2,7 @@
 .assembly test1 { }
 .class public writenums
 {
-    .method public static void main () cil managed
+    .method public static void main ()
     {
         .entrypoint
         .maxstack 20
