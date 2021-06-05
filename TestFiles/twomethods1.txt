@@ -8,7 +8,7 @@ public class twomethods1 {
 		WriteLine(x);
 	}
 	
-	public void main ()
+	public static void main ()
 	{
 		check(12345);
 		WriteLine("Back in main");

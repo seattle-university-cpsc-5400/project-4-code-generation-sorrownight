@@ -62,9 +62,10 @@ namespace ASTBuilder
   {
     public string Name;
     public Attributes atr;
-
+    public string invokedOn;
     public Identifier(string s)
     {
+      invokedOn = "this";
       Name = s;
     }
   }
@@ -317,9 +318,11 @@ namespace ASTBuilder
   {
     public string Name;
     public Attributes atr;
+    public string invokedOn;
 
     public QualifiedName(AbstractNode id)
     {
+      invokedOn = "this";
       adoptChildren(id);
     }
   }
@@ -327,6 +330,7 @@ namespace ASTBuilder
   public class MethodCall : AbstractNode
   {
     public MethodCallAttributes atr;
+    public string invokedOn;
     public MethodCall(AbstractNode mRef, AbstractNode argList)
     {
       adoptChildren(mRef);

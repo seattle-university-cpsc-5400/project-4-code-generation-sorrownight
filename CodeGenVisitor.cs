@@ -162,6 +162,9 @@ namespace ASTBuilder
     }
     public void VisitNode(MethodDeclaration node)
     {
+      string prevMethodCtx = methodCtx;
+      //string prevStaticCtx = methodCtx;
+
       MethodAttributes atr = node.atr;
       dynamic sig = node.Child.Sib.Sib;
       dynamic body = node.Child.Sib.Sib.Sib;
@@ -173,9 +176,7 @@ namespace ASTBuilder
           atr.isStatic = true;
         }
         file.Write(" " + getModString(mod));
-      }
-
-      
+      }      
 
       if (!atr.isStatic && sig.atr.name.Equals("main")) {
         file.Write(" static");
@@ -184,8 +185,8 @@ namespace ASTBuilder
 
       if (!atr.isStatic)
         methodCtx = atr.foundIn;
-
-      staticCtx = atr.foundIn;
+      else
+        staticCtx = atr.foundIn;
 
       file.Write(" " + atr.returnType.type);
 
@@ -211,6 +212,9 @@ namespace ASTBuilder
       otherPrefix = oldPrefix;
 
       file.WriteLine(otherPrefix + "}");
+
+      methodCtx = prevMethodCtx;
+      staticCtx = "";
     }
 
     public void VisitNode(MethodSignature node)
@@ -219,10 +223,16 @@ namespace ASTBuilder
       if (atr.name.Equals("init")) atr.name = "\'" + atr.name + "\'";
       file.Write(" " + atr.name + " (");
 
-      if (atr.parameters.Count != 0)
+      if (atr.parameters.Count != 0) {
+        if (atr.parameters[0].type is ObjectTypeDescriptor)
+          file.Write("valuetype ");
         file.Write(atr.parameters[0].type.type);
-      for (int i = 1; i < atr.parameters.Count; i++)
+      }
+      for (int i = 1; i < atr.parameters.Count; i++) {
+        if (atr.parameters[i].type is ObjectTypeDescriptor)
+          file.Write("valuetype ");
         file.Write(", " + atr.parameters[i].type.type);
+      }
 
       if (!atr.name.Equals("main")) file.WriteLine(") cil managed");
       else file.WriteLine(")");
@@ -243,15 +253,17 @@ namespace ASTBuilder
 
     public void VisitNode(MethodCall node)
     {
-      MethodCallAttributes callAtr = node.atr;      
+      MethodCallAttributes callAtr = node.atr;
 
-      if (currentClass.Equals(methodCtx)) { // Load the instance from arg one
+      // Console.WriteLine(node.invokedOn);
+      if (node.invokedOn.Equals("this") && !callAtr.mAtr.isStatic) { // Load the instance
         file.WriteLine(otherPrefix + "ldarg 0");
+        //Console.WriteLine(node.invokedOn);
       }
       bool prevRhs = inRhs;
 
       inRhs = false;
-      VisitNode(node.Child); // get the scope thing for struct
+      VisitNode(node.Child);
 
       inRhs = true;
       if (node.Child.Sib != null) // Load arguments
@@ -282,10 +294,16 @@ namespace ASTBuilder
         }        
       }
 
-      if (callAtr.sig.Count != 0)
+      if (callAtr.sig.Count != 0) {
+        if (callAtr.sig[0] is ObjectTypeDescriptor)
+          file.Write("valuetype ");
         file.Write(callAtr.sig[0].type);
-      for (int i = 1; i < callAtr.sig.Count; i++)
+      }
+      for (int i = 1; i < callAtr.sig.Count; i++) {
+        if (callAtr.sig[i] is ObjectTypeDescriptor)
+          file.Write("valuetype ");
         file.Write(", " + callAtr.sig[i].type);
+      }
 
       file.WriteLine(")");
     }
@@ -295,7 +313,8 @@ namespace ASTBuilder
       foreach(dynamic child in node.Children()) {
         if (child is STR_CONST) {
           file.WriteLine(otherPrefix + "ldstr \"" + ((STR_CONST)child).StrVal + "\"");
-        } else {
+        } else {          
+
           VisitNode(child);
         }
       }
@@ -315,14 +334,20 @@ namespace ASTBuilder
       if (node.exprKind == ExprKind.EQUALS) {
         inRhs = false;
         VisitNode(lhs);
-        if (currentClass.Equals(methodCtx)) {
-          file.WriteLine(otherPrefix + "ldarg 0"); // Load the instance from arg one
+        if (!((VariableAttributes)lhs.atr).isLocal && lhs.invokedOn.Equals("this")) {
+          file.WriteLine(otherPrefix + "ldarg 0"); // Load the instance
+          //Console.WriteLine(lhs.Name);
         }
 
         inRhs = true;
         VisitNode(rhs);
-      } else VisitChildren(node);
-
+      } else {
+        if ((lhs is QualifiedName || lhs is Identifier) &&
+          !((VariableAttributes)lhs.atr).isLocal && lhs.invokedOn.Equals("this")) {
+          file.WriteLine(otherPrefix + "ldarg 0"); // Load the instance
+        }
+        VisitChildren(node);
+      }
       inRhs = false;
 
       switch (node.exprKind) {
@@ -407,9 +432,19 @@ namespace ASTBuilder
 
     public void VisitNode(Identifier node)
     {
-      if (node.type is ObjectTypeDescriptor && !currentClass.Equals(staticCtx)) {
-        file.WriteLine(otherPrefix + "ldsflda valuetype  " + node.type.type
-                      + " " + currentClass + "::" + node.Name);
+
+      if (node.type is ObjectTypeDescriptor && node.atr is VariableAttributes
+        /* && !node.invokedOn.Equals("this")*/) {
+        if (((VariableAttributes)node.atr).isParam)
+          file.WriteLine(otherPrefix + "ldarg " + (((VariableAttributes)node.atr).stackLoc + offset));
+        else {
+          if (inRhs)
+            file.WriteLine(otherPrefix + "ldsfld valuetype  " + node.type.type
+                        + " " + currentClass + "::" + node.Name);
+          else
+            file.WriteLine(otherPrefix + "ldsflda valuetype  " + node.type.type
+                        + " " + currentClass + "::" + node.Name);
+        }
       }
       // If RHS, extract location
       else if (inRhs) {

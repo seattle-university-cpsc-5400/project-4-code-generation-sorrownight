@@ -316,11 +316,18 @@ namespace ASTBuilder
       Trace(node);
 
       Lookupable ctx = table;
+      Identifier prev = null;
       foreach (Identifier id in node.Children()) {
         ctx = VisitContext(id, ctx);
         node.Name += id.Name + " ";
         node.type = id.type;
         node.atr = id.atr;
+        if (prev != null) {
+          node.invokedOn = id.Name;
+
+          id.invokedOn = prev.Name;
+        }
+        prev = id;
         // TODO: Error report when doing ClassA.a.b.c where a doesn't return a context
       }
     }
@@ -430,7 +437,9 @@ namespace ASTBuilder
           // Symbol Table will handle redeclarations
           VariableAttributes atr = new VariableAttributes(type, id.Name);
           id.type = type;
+          atr.isLocal = true;
           id.atr = atr;
+          
 
           if (!table.enter(id.Name, atr)) {
             node.type = errorType;
@@ -458,7 +467,7 @@ namespace ASTBuilder
           pID.type = typeSpec.type;
           VariableAttributes varAtr = new VariableAttributes(pID.type, pID.Name);
           varAtr.isParam = true;
-
+          varAtr.isLocal = true;
           varAtr.initialized = true;
           pID.atr = varAtr;
           if (!scope.enter(pID.Name, varAtr)) {
@@ -572,7 +581,7 @@ namespace ASTBuilder
       dynamic argList = name.Sib;
 
       VisitChildren(node);
-
+      node.invokedOn = name.invokedOn;
       // Find method in symbol table
       Attributes atr = name.atr;
       if (atr == null) {
@@ -611,8 +620,7 @@ namespace ASTBuilder
               node.atr.name = name.Name;
               dynamic last = null;
               foreach (Identifier id in name.Children()) last = id;
-              node.atr.relativeName = last.Name;
-
+              node.atr.relativeName = last.Name;              
               found = true;
               break;
             }

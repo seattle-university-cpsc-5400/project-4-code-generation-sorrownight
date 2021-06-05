@@ -58,6 +58,7 @@ namespace ASTBuilder
     public int stackLoc;
     public bool isParam;
     public string foundIn;
+    public bool isLocal;
 
     public VariableAttributes(TypeDescriptor type, string id) 
     {
@@ -154,6 +155,7 @@ namespace ASTBuilder
     {
       this.type = type;
       this.returnType = returnType;
+      isStatic = true;
     }
   }
 
